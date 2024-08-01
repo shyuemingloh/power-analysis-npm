@@ -1,7 +1,11 @@
 "use strict";
 var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
     if (k2 === undefined) k2 = k;
-    Object.defineProperty(o, k2, { enumerable: true, get: function() { return m[k]; } });
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
 }) : (function(o, m, k, k2) {
     if (k2 === undefined) k2 = k;
     o[k2] = m[k];
@@ -32,7 +36,7 @@ try {
         round: true,
         decimal: 4,
     };
-    const result1a = index_1.powerAnalysis(params1a);
+    const result1a = (0, index_1.powerAnalysis)(params1a);
     assert.strictEqual(result1a, 3139.5519);
     console.log('Test 1a passed');
 }
@@ -50,7 +54,7 @@ try {
         round: true,
         decimal: 2,
     };
-    const result1b = index_1.powerAnalysis(params1b);
+    const result1b = (0, index_1.powerAnalysis)(params1b);
     assert.strictEqual(result1b, 0.01);
     console.log('Test 1b passed');
 }
@@ -65,7 +69,7 @@ try {
         round: true,
         decimal: 4,
     };
-    const result1c = index_1.sampleSizeDurationConversion(params1c);
+    const result1c = (0, index_1.sampleSizeDurationConversion)(params1c);
     assert.strictEqual(result1c, 31.3955);
     console.log('Test 1c passed');
 }
@@ -80,7 +84,7 @@ try {
         round: true,
         decimal: 2,
     };
-    const result1d = index_1.sampleSizeDurationConversion(params1d);
+    const result1d = (0, index_1.sampleSizeDurationConversion)(params1d);
     assert.strictEqual(result1d, 3139.55);
     console.log('Test 1d passed');
 }
@@ -99,7 +103,7 @@ try {
         round: true,
         decimal: 4,
     };
-    const result2a = index_1.powerAnalysis(params2a);
+    const result2a = (0, index_1.powerAnalysis)(params2a);
     assert.strictEqual(result2a, 3737.5618);
     console.log('Test 2a passed');
 }
@@ -118,7 +122,7 @@ try {
         round: true,
         decimal: 2,
     };
-    const result2b = index_1.powerAnalysis(params2b);
+    const result2b = (0, index_1.powerAnalysis)(params2b);
     assert.strictEqual(result2b, 0.01);
     console.log('Test 2b passed');
 }

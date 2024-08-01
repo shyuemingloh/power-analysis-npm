@@ -1,4 +1,4 @@
-declare type PowerAnalysisParams = {
+type PowerAnalysisParams = {
     effect?: number | null;
     sample_size?: number | null;
     control_mean?: number | null;
@@ -13,7 +13,7 @@ declare type PowerAnalysisParams = {
     round?: boolean;
     decimal?: number;
 };
-declare type SampleSizeDurationConversionParams = {
+type SampleSizeDurationConversionParams = {
     sample_size?: number | null;
     duration?: number | null;
     exposure_rate?: number | null;
