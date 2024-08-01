@@ -1,12 +1,20 @@
 {
   "name": "power-analysis",
-  "version": "1.0.0",
+  "version": "1.0.1",
+  "description": "Functions for power analysis calculations.",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "keywords": [],
+  "keywords": [
+    "power analysis",
+    "sample size",
+    "statistics"
+  ],
   "author": "Shyue-Ming Loh",
   "license": "ISC",
-  "description": "Functions for power analysis calculations."
+  "dependencies": {
+    "jstat": "^1.9.6",
+    "mathjs": "^13.0.3"
+  }
 }
