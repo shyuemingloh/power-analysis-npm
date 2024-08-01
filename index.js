@@ -2,12 +2,19 @@ const math = require('mathjs');
 const jStat = require('jstat');
 
 function powerAnalysis({ effect = null, sample_size = null, control_mean = null, control_sd = null,
-                         output = "sample_size", effect_type = "relative", alternative = "two-sided",
-                         alpha = 0.05, power = 0.80, treat_prop = 0.50, round = true, decimal = 0 } = {}) {
+                         output = "sample_size", analysis_type = "power", effect_type = "relative",
+                         alternative = "two-sided", alpha = 0.05, power = 0.80, treat_prop = 0.50,
+                         exposure_rate = 100, round = true, decimal = 0 } = {}) {
   // Check output argument
   if (output !== "sample_size" && output !== "effect") {
     throw new Error("Invalid 'output' argument: must be 'sample_size' or 'effect'");
   } 
+  // Check analysis type argument and update power if precision analysis is chosen
+  if (analysis_type == "precision") {
+    power = 0.50;
+  } else if (analysis_type != "power") {
+    throw new Error("Invalid 'analysis_type' argument: must be 'power' or 'precision'");
+  }
   // Check effect type argument and calculate the effect factor
   // i.e., what is multiplied to effect to obtain an effect size
   var effect_factor = null;
@@ -64,9 +71,33 @@ function powerAnalysis({ effect = null, sample_size = null, control_mean = null,
   return out;
 }
 
+// Convert between sample size and duration
+function sampleSizeDurationConversion({ sample_size = null, duration = null,
+                                        exposure_rate = null, output = "duration",
+                                        round = true, decimal = 0 } = {}) {
+  // Check output argument
+  if (output !== "duration" && output !== "sample_size") {
+    throw new Error("Invalid 'output' argument: must be 'duration' or 'sample_size'");
+  }
+  // Calculate output
+  var out = null;
+  if (output == "duration") {
+    out = sample_size / exposure_rate;
+  } else {
+    out = duration * exposure_rate;
+  }
+  if (round) {
+    out = math.round(out, decimal)
+  }
+  return(out);
+} 
+
 // Quantile of the standard normal distribution
 function zQuantile(p) {
   return jStat.normal.inv(p, 0, 1);
 }
 
-module.exports = powerAnalysis
+module.exports = {
+  powerAnalysis,
+  sampleSizeDurationConversion
+};

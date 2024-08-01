@@ -1,4 +1,4 @@
-const powerAnalysis = require('../index');
+const { powerAnalysis, sampleSizeDurationConversion } = require('../index');
 const assert = require('assert');
 
 // Examples 1a and 1b
@@ -7,8 +7,8 @@ try {
     effect: 0.01, control_mean: 100, control_sd: 10,
     alpha: 0.05, power: 0.80, round: true, decimal: 4
   }
-  const result = powerAnalysis(params);
-  assert.strictEqual(result, 3139.5519);
+  const result1a = powerAnalysis(params);
+  assert.strictEqual(result1a, 3139.5519);
   console.log('Test 1a passed')
 } catch (error) {
   console.error('Test 1a failed', error);
@@ -19,12 +19,24 @@ try {
     control_mean: 100, control_sd: 10,
     alpha: 0.05, power: 0.80, round: true, decimal: 2
   }
-  const result = powerAnalysis(params);
-  assert.strictEqual(result, 0.01);
+  const result1b = powerAnalysis(params);
+  assert.strictEqual(result1b, 0.01);
   console.log('Test 1b passed')
 } catch (error) {
   console.error('Test 1b failed', error);
 }
+try {
+  const params = {
+    sample_size: 3139.5519, exposure_rate: 100,
+    round: true, decimal: 4
+  }
+  const result1c = sampleSizeDurationConversion(params);
+  assert.strictEqual(result1c, 31.3955);
+  console.log('Test 1c passed')
+} catch (error) {
+  console.error('Test 1c failed', error);
+}
+
 // Examples 2a and 2b
 try {
   const params = {
