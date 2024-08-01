@@ -36,6 +36,17 @@ try {
 } catch (error) {
   console.error('Test 1c failed', error);
 }
+try {
+  const params = {
+    duration: 31.3955, exposure_rate: 100,
+    output: "sample_size", round: true, decimal: 2
+  }
+  const result1c = sampleSizeDurationConversion(params);
+  assert.strictEqual(result1c, 3139.55);
+  console.log('Test 1d passed')
+} catch (error) {
+  console.error('Test 1d failed', error);
+}
 
 // Examples 2a and 2b
 try {
