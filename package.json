@@ -1,10 +1,11 @@
 {
   "name": "power-analysis",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "Functions for power analysis calculations.",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build": "tsc",
+    "test": "ts-node src/index.test.ts"
   },
   "keywords": [
     "power analysis",
@@ -16,5 +17,10 @@
   "dependencies": {
     "jstat": "^1.9.6",
     "mathjs": "^13.0.3"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.2",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.5.4"
   }
 }
