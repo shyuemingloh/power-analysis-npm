@@ -46,7 +46,7 @@ function powerAnalysis({ effect = null, sample_size = null, control_mean = null,
     }
     return out;
 }
-function sampleSizeDurationConversion({ sample_size = null, duration = null, exposure_rate = null, output = 'duration', round = true, decimal = 0, } = {}) {
+function sampleSizeDurationConversion({ sample_size = null, duration = null, exposure_rate = null, output = 'duration', round = true, decimal = 0, }) {
     let out = null;
     if (output === 'duration') {
         out = sample_size / exposure_rate;
