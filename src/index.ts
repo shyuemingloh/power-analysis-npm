@@ -31,44 +31,6 @@ import { jStat } from 'jstat';
  * round: Whether to round the output value.
  * decimal: Number of decimal places to round the output value.
  */
-
-type PowerAnalysisParams = {
-  effect?: number | null;
-  sample_size?: number | null;
-  control_mean?: number | null;
-  control_sd?: number | null;
-  output?: 'sample_size' | 'effect';
-  analysis_type?: 'power' | 'precision';
-  effect_type?: 'absolute' | 'relative' | 'effect_size';
-  alternative?: 'one_sided' | 'two_sided';
-  alpha?: number;
-  power?: number;
-  treat_prop?: number;
-  round?: boolean;
-  decimal?: number;
-};
-
-/**
- * Convert between sample size and duration given exposure rate.
- * Parameters are passed as an object with the following components:
- * sample_size: Sample size to compute duration when output = "duration".
- * duration: Duration to compute sample size when output = "sample_size".
- * exposure_rate: Rate of accumulating exposures, i.e., exposures per time unit.
- * output: Output type for the conversion; specify:
- *   "duration" to convert sample size to duration (default); or
- *   "sample_size" to convert duration to sample size.
- * round: Whether to round the output value.
- * decimal: Number of decimal places to round the output value.
- */
-type SampleSizeDurationConversionParams = {
-  sample_size?: number | null;
-  duration?: number | null;
-  exposure_rate?: number | null;
-  output?: 'duration' | 'sample_size';
-  round?: boolean;
-  decimal?: number;
-};
-
 function powerAnalysis({
   effect = null,
   sample_size = null,
@@ -83,7 +45,21 @@ function powerAnalysis({
   treat_prop = 0.5,
   round = true,
   decimal = 0,
-}: PowerAnalysisParams = {}): number {
+}: {
+  effect?: number | null;
+  sample_size?: number | null;
+  control_mean?: number | null;
+  control_sd?: number | null;
+  output?: 'sample_size' | 'effect';
+  analysis_type?: 'power' | 'precision';
+  effect_type?: 'absolute' | 'relative' | 'effect_size';
+  alternative?: 'one_sided' | 'two_sided';
+  alpha?: number;
+  power?: number;
+  treat_prop?: number;
+  round?: boolean;
+  decimal?: number;
+}): number {
   if (analysis_type === 'precision') {
     power = 0.5;
   }
@@ -129,7 +105,18 @@ function powerAnalysis({
   }
   return out;
 }
-
+/**
+ * Convert between sample size and duration given exposure rate.
+ * Parameters are passed as an object with the following components:
+ * sample_size: Sample size to compute duration when output = "duration".
+ * duration: Duration to compute sample size when output = "sample_size".
+ * exposure_rate: Rate of accumulating exposures, i.e., exposures per time unit.
+ * output: Output type for the conversion; specify:
+ *   "duration" to convert sample size to duration (default); or
+ *   "sample_size" to convert duration to sample size.
+ * round: Whether to round the output value.
+ * decimal: Number of decimal places to round the output value.
+ */
 function sampleSizeDurationConversion({
   sample_size = null,
   duration = null,
@@ -137,7 +124,14 @@ function sampleSizeDurationConversion({
   output = 'duration',
   round = true,
   decimal = 0,
-}: SampleSizeDurationConversionParams): number {
+}: {
+  sample_size?: number | null;
+  duration?: number | null;
+  exposure_rate?: number | null;
+  output?: 'duration' | 'sample_size';
+  round?: boolean;
+  decimal?: number;
+}): number {
   let out: number | null = null;
   if (output === 'duration') {
     out = sample_size! / exposure_rate!;
