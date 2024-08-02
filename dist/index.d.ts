@@ -27,7 +27,7 @@
  * round: Whether to round the output value.
  * decimal: Number of decimal places to round the output value.
  */
-type PowerAnalysisParams = {
+declare function powerAnalysis({ effect, sample_size, control_mean, control_sd, output, analysis_type, effect_type, alternative, alpha, power, treat_prop, round, decimal, }: {
     effect?: number | null;
     sample_size?: number | null;
     control_mean?: number | null;
@@ -41,7 +41,7 @@ type PowerAnalysisParams = {
     treat_prop?: number;
     round?: boolean;
     decimal?: number;
-};
+}): number;
 /**
  * Convert between sample size and duration given exposure rate.
  * Parameters are passed as an object with the following components:
@@ -54,14 +54,12 @@ type PowerAnalysisParams = {
  * round: Whether to round the output value.
  * decimal: Number of decimal places to round the output value.
  */
-type SampleSizeDurationConversionParams = {
+declare function sampleSizeDurationConversion({ sample_size, duration, exposure_rate, output, round, decimal, }: {
     sample_size?: number | null;
     duration?: number | null;
     exposure_rate?: number | null;
     output?: 'duration' | 'sample_size';
     round?: boolean;
     decimal?: number;
-};
-declare function powerAnalysis({ effect, sample_size, control_mean, control_sd, output, analysis_type, effect_type, alternative, alpha, power, treat_prop, round, decimal, }?: PowerAnalysisParams): number;
-declare function sampleSizeDurationConversion({ sample_size, duration, exposure_rate, output, round, decimal, }: SampleSizeDurationConversionParams): number;
+}): number;
 export { powerAnalysis, sampleSizeDurationConversion };
