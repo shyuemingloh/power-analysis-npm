@@ -1,4 +1,3 @@
-const math = require('mathjs');
 const jStat = require('jstat');
 
 /**
@@ -19,6 +18,8 @@ const jStat = require('jstat');
  *   "absolute" for absolute effect, treatment mean minus control mean;
  *   "relative" for relative effect, absolute effect / control mean (default); or 
  *   "effect_size" for effect size, absolute effect / control SD.
+ * r_squared: The common R-squared for the analysis of covariance (ANCOVA) model for each
+ *   experiment arm. 
  * alternative: Type of alternative for hypothesis test; specify:
  *   "one_sided" for a one-sided alternative hypothesis; or
  *   "two_sided" for a two-sided alternative hypothesis (default). 
@@ -32,7 +33,8 @@ const jStat = require('jstat');
  */
 function powerAnalysis({ effect = null, sample_size = null, control_mean = null, control_sd = null,
                          output = "sample_size", analysis_type = "power", effect_type = "relative",
-                         alternative = "two-sided", alpha = 0.05, power = 0.80, treat_prop = 0.50,
+                         distribution = "normal", r_squared = 0, alternative = "two-sided",
+                         alpha = 0.05, power = 0.80, treat_prop = 0.50,
                          round = true, decimal = 0 } = {}) {
   // Check output argument
   if (output !== "sample_size" && output !== "effect") {
@@ -56,6 +58,10 @@ function powerAnalysis({ effect = null, sample_size = null, control_mean = null,
   } else {
     throw new Error("Invalid 'effect_type' argument: must be 'relative', 'absolute', or 'effect_size'");
   } 
+  // Check range of control and treatment means for binomial distribution 
+  if (control_mean < 0 || control_mean > 1) {
+    ("Invalid 'alpha' argument: must be >= 0 and <= 1");
+  }
   // Check alternative argument and calculate significance divisor
   var signif_divisor = null;
   if (alternative == "one-sided") {
@@ -78,6 +84,12 @@ function powerAnalysis({ effect = null, sample_size = null, control_mean = null,
   } else {
     imbalance_deff = 0.25 / (treat_prop * (1 - treat_prop))
   }
+  // Check R-squared argument and calculate ANCOVA design effect
+  if (r_squared < 0) {
+    throw new Error("Invalid 'r_squared' argument: must be >= 0");
+  } else {
+    ancova_deff = 1 - r_squared
+  }
 
   // Calculate multiplier
   const multiplier = Math.abs(zQuantile(power) + zQuantile(1 - alpha / signif_divisor))
@@ -87,15 +99,15 @@ function powerAnalysis({ effect = null, sample_size = null, control_mean = null,
   // (a) Calculate sample size given effect
   if (output == "sample_size") {
     const effect_size = effect * effect_factor;
-    out = (2 * multiplier / effect_size) ** 2 * imbalance_deff;
+    out = (2 * multiplier / effect_size) ** 2 * imbalance_deff * ancova_deff;
   }
   // (b) Calculate effect given sample size 
   else {
-    out = 2 * multiplier * Math.sqrt(imbalance_deff) /
+    out = 2 * multiplier * Math.sqrt(imbalance_deff * ancova_deff) /
       (effect_factor * Math.sqrt(sample_size)) 
   }
   if (round) {
-    out = math.round(out, decimal)
+    out = roundNumber(out, decimal)
   }
   return out;
 }
@@ -127,7 +139,7 @@ function sampleSizeDurationConversion({ sample_size = null, duration = null,
     out = duration * exposure_rate;
   }
   if (round) {
-    out = math.round(out, decimal)
+    out = roundNumber(out, decimal)
   }
   return(out);
 } 
@@ -138,6 +150,15 @@ function sampleSizeDurationConversion({ sample_size = null, duration = null,
  */
 function zQuantile(p) {
   return jStat.normal.inv(p, 0, 1);
+}
+
+/**
+ * Round a number x to n decimal places.
+ * x: Number to round.
+ * n: Number of decimal places. 
+ */
+function roundNumber(x, n) {
+  return Math.round(x * (10 ** n)) / (10 ** n);
 }
 
 module.exports = {
