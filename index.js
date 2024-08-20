@@ -4,7 +4,10 @@ const jStat = require('jstat');
  * Perform power analysis to compute sample size given effect or effect given sample size. 
  * Parameters are passed as an object with the following components:
  * effect: Minimum detectable effect (MDE) to compute the minimum required sample size (MRSS) 
- *   when output = "sample_size". 
+ *   when output = "sample_size". For a one-sided, upper-tailed test, the effect must be
+ *   positive. For a one-sided, lower-tailed test, the effect must be negative. For a
+ *   two-sided test, the effect can be any real value. See the `alternative` argument for 
+ *   further details. 
  * sample_size: MRSS to compute the MDE when output = "effect".
  * control_mean: Mean of the control arm.
  * control_sd: Standard deviation (SD) of the control arm.
@@ -21,21 +24,29 @@ const jStat = require('jstat');
  * r_squared: The common R-squared for the analysis of covariance (ANCOVA) model for each
  *   experiment arm. 
  * alternative: Type of alternative for hypothesis test; specify:
- *   "one_sided" for a one-sided alternative hypothesis; or
- *   "two_sided" for a two-sided alternative hypothesis (default). 
+ *   "two_sided" for a two-sided alternative hypothesis (default), or
+ *   "upper_tailed" for a one-sided, upper-tailed alternative hypothesis, or
+ *   "lower_tailed" for a one-sided, lower-tailed alternative hypothesis. 
  * alpha: The significance level (upper limit of the false positive rate) of the hypothesis test
  *   (defaults to 0.05).
  * power: The power (one minus the false negative rate) of the hypothesis test (default to 0.80).
+ *   Currently, the false negative rate (one minus power) is restricted to be greater than 
+ *   alpha, the significance level. 
  * treat_prop: Proportion of traffic allocation to treatment arm; we assume there are only two 
  *   experiment arms—the treatment and control arms. 
+ * sd_ratio: The ratio of the treatment arm SD to the control arm SD. 
+ * var_model: The variance model used; specify:
+ *   "absolute" to use the variance of the absolute effect, the variance of the difference of
+ *      averages; or
+ *   "relative" to use the variance of the relative effect, the variance of a ratio of averages.
  * round: Whether to round the output value.
  * decimal: Number of decimal places to round the output value. 
  */
 function powerAnalysis({ effect = null, sample_size = null, control_mean = null, control_sd = null,
                          output = "sample_size", analysis_type = "power", effect_type = "relative",
                          distribution = "normal", r_squared = 0, alternative = "two-sided",
-                         alpha = 0.05, power = 0.80, treat_prop = 0.50,
-                         round = true, decimal = 0 } = {}) {
+                         alpha = 0.05, power = 0.80, treat_prop = 0.50, sd_ratio = 1,
+                         var_model = "absolute", round = true, decimal = 0 } = {}) {
   // Check output argument
   if (output !== "sample_size" && output !== "effect") {
     throw new Error("Invalid 'output' argument: must be 'sample_size' or 'effect'");
@@ -46,30 +57,40 @@ function powerAnalysis({ effect = null, sample_size = null, control_mean = null,
   } else if (analysis_type != "power") {
     throw new Error("Invalid 'analysis_type' argument: must be 'power' or 'precision'");
   }
-  // Check effect type argument and calculate the effect factor
+  // Check effect type and effect arguments and calculate the treatment mean and the effect factor
   // i.e., what is multiplied to effect to obtain an effect size
   var effect_factor = null;
   if (effect_type == "relative") {
+    if (effect < -1) {
+      throw new Error("Invalid 'effect' argument: must be >= -1 when effect_type = 'relative'");
+    }
+    treatment_mean = control_mean * (1 + effect);
     effect_factor = control_mean / control_sd;
   } else if (effect_type == "absolute") {
+    treatment_mean = control_mean + effect
     effect_factor = 1 / control_sd;
   } else if (effect_type == "effect_size") {
+    treatment_mean = control_mean + effect * control_sd
     effect_factor = 1
   } else {
     throw new Error("Invalid 'effect_type' argument: must be 'relative', 'absolute', or 'effect_size'");
   } 
   // Check range of control and treatment means for binomial distribution 
   if (control_mean < 0 || control_mean > 1) {
-    ("Invalid 'alpha' argument: must be >= 0 and <= 1");
+    ("Invalid 'control_mean' argument: must be >= 0 and <= 1 when distribution = 'binomial'");
   }
+  if (treatment_mean < 0 || treatment_mean > 1) {
+    ("Invalid 'effect' and 'control_mean' arguments: treatment mean must be >= 0 and <= 1 when distribution = 'binomial'");
+  }
+  mean_ratio = treatment_mean / control_mean
   // Check alternative argument and calculate significance divisor
   var signif_divisor = null;
-  if (alternative == "one-sided") {
+  if (alternative == "upper-tailed" || alternative == "lower-tailed") {
     signif_divisor = 1; 
   } else if (alternative == "two-sided") {
     signif_divisor = 2;
   } else {
-    throw new Error("Invalid 'alternative' argument: must be 'one-sided' or 'two-sided'");
+    throw new Error("Invalid 'alternative' argument: must be 'upper-tailed', 'lower-tailed', or 'two-sided'");
   }
   // Check alpha (significance) and power arguments
   if (alpha < 0 || alpha > 1) {
@@ -78,11 +99,16 @@ function powerAnalysis({ effect = null, sample_size = null, control_mean = null,
   if (power < 0 || power > 1) {
     throw new Error("Invalid 'power' argument: must be >= 0 and <= 1");
   }
+  if (alpha >= 1 - power) {
+    throw new Error("Invalid 'alpha' and 'power' arguments: must have alpha < 1 - power");
+  }
   // Check treatment proportion argument and calculate imbalance design effect
   if (treat_prop < 0 || treat_prop > 1) {
     throw new Error("Invalid 'treat_prop' argument: must be >= 0 and <= 1");
+  } else if (sd_ratio < 0) {
+    throw new Error("Invalid 'sd_ratio' argument: must be >= 0");
   } else {
-    imbalance_deff = 0.25 / (treat_prop * (1 - treat_prop))
+    imbalance_deff = 0.25 * (sd_ratio ** 2 / treat_prop + (var_model == "relative" ? (mean_ratio ** 2) : 1) / (1 - treat_prop))
   }
   // Check R-squared argument and calculate ANCOVA design effect
   if (r_squared < 0) {
@@ -99,7 +125,7 @@ function powerAnalysis({ effect = null, sample_size = null, control_mean = null,
   // (a) Calculate sample size given effect
   if (output == "sample_size") {
     const effect_size = effect * effect_factor;
-    out = (2 * multiplier / effect_size) ** 2 * imbalance_deff * ancova_deff;
+    out = ((2 * multiplier / effect_size) ** 2) * imbalance_deff * ancova_deff;
   }
   // (b) Calculate effect given sample size 
   else {
