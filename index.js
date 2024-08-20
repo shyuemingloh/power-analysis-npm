@@ -83,10 +83,15 @@ function powerAnalysis({ effect = null, sample_size = null, control_mean = null,
     ("Invalid 'effect' and 'control_mean' arguments: treatment mean must be >= 0 and <= 1 when distribution = 'binomial'");
   }
   mean_ratio = treatment_mean / control_mean
-  // Check alternative argument and calculate significance divisor
+  // Check alternative argument and effect sign and calculate significance divisor
   var signif_divisor = null;
   if (alternative == "upper-tailed" || alternative == "lower-tailed") {
     signif_divisor = 1; 
+    if (alternative == "upper-tailed") {
+      throw new Error("Invalid 'effect' argument: effect must be > 0 when alternative = 'upper-tailed'");
+    } else {
+      throw new Error("Invalid 'effect' argument: effect must be < 0 when alternative = 'lower-tailed'");
+    }
   } else if (alternative == "two-sided") {
     signif_divisor = 2;
   } else {
