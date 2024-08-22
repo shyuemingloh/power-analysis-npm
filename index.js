@@ -87,9 +87,9 @@ function powerAnalysis({ effect = null, sample_size = null, control_mean = null,
   var signif_divisor = null;
   if (alternative == "upper-tailed" || alternative == "lower-tailed") {
     signif_divisor = 1; 
-    if (alternative == "upper-tailed") {
+    if (alternative == "upper-tailed" && effect <= 0) {
       throw new Error("Invalid 'effect' argument: effect must be > 0 when alternative = 'upper-tailed'");
-    } else {
+    } else if (alternative == "lower-tailed" && effect >= 0) {
       throw new Error("Invalid 'effect' argument: effect must be < 0 when alternative = 'lower-tailed'");
     }
   } else if (alternative == "two-sided") {
