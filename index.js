@@ -195,5 +195,6 @@ function roundNumber(x, n) {
 
 module.exports = {
   powerAnalysis,
-  sampleSizeDurationConversion
+  sampleSizeDurationConversion,
+  zQuantile
 };
