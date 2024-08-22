@@ -1,6 +1,6 @@
 {
   "name": "power-analysis",
-  "version": "1.0.8",
+  "version": "1.0.9",
   "description": "Functions for power analysis calculations.",
   "main": "index.js",
   "scripts": {
