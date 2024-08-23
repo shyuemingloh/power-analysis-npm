@@ -87,11 +87,13 @@ function powerAnalysis({ effect = null, sample_size = null, control_mean = null,
   var signif_divisor = null;
   if (alternative == "upper-tailed" || alternative == "lower-tailed") {
     signif_divisor = 1; 
-    if (alternative == "upper-tailed" && effect <= 0) {
-      throw new Error("Invalid 'effect' argument: effect must be > 0 when alternative = 'upper-tailed'");
-    }
-    if (alternative == "lower-tailed" && effect >= 0) {
-      throw new Error("Invalid 'effect' argument: effect must be < 0 when alternative = 'lower-tailed'");
+    if (output == "sample_size") {
+      if (alternative == "upper-tailed" && effect <= 0) {
+        throw new Error("Invalid 'effect' argument: effect must be > 0 when alternative = 'upper-tailed'");
+      }
+      if (alternative == "lower-tailed" && effect >= 0) {
+        throw new Error("Invalid 'effect' argument: effect must be < 0 when alternative = 'lower-tailed'");
+      }
     }
   } else if (alternative == "two-sided") {
     signif_divisor = 2;
@@ -120,11 +122,11 @@ function powerAnalysis({ effect = null, sample_size = null, control_mean = null,
   if (r_squared < 0) {
     throw new Error("Invalid 'r_squared' argument: must be >= 0");
   } else {
-    ancova_deff = 1 - r_squared
+    ancova_deff = 1 - r_squared;
   }
 
   // Calculate multiplier
-  const multiplier = Math.abs(zQuantile(power) + zQuantile(1 - alpha / signif_divisor))
+  const multiplier = Math.abs(zQuantile(power) + zQuantile(1 - alpha / signif_divisor));
 
   // Calculate power analysis output
   var out = null;
@@ -135,8 +137,20 @@ function powerAnalysis({ effect = null, sample_size = null, control_mean = null,
   }
   // (b) Calculate effect given sample size 
   else {
-    out = 2 * multiplier * Math.sqrt(imbalance_deff * ancova_deff) /
-      (effect_factor * Math.sqrt(sample_size)) 
+    if (var_model == "relative") {
+      g = (multiplier * control_sd / control_mean) ** 2 / sample_size;
+      a = g / (1 - treat_prop) - 1;
+      b = 2 * g / (1 - treat_prop);
+      c = g * (sd_ratio ** 2 / treat_prop + 1 / (1 - treat_prop));
+      discriminant = b ** 2 - 4 * a * c;
+      solution1 = (-b - Math.sqrt(discriminant)) / (2 * a);
+      solution2 = (-b + Math.sqrt(discriminant)) / (2 * a);
+      rel_effect = Math.max(solution1, solution2);
+      out = (rel_effect * control_mean / control_sd) / effect_factor;
+    } else {
+      out = 2 * multiplier * Math.sqrt(imbalance_deff * ancova_deff) /
+        (effect_factor * Math.sqrt(sample_size));
+    }
   }
   if (round) {
     out = roundNumber(out, decimal)
@@ -196,5 +210,6 @@ function roundNumber(x, n) {
 module.exports = {
   powerAnalysis,
   sampleSizeDurationConversion,
-  zQuantile
+  zQuantile,
+  roundNumber
 };
